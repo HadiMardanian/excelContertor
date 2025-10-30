@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Excel Converter</title>
+    <style>
+      :root { --bg:#0b1116; --panel:#0f1720; --muted:#9fb1c1; --border:#1f2a35; --pri:#5b8cff; --pri-600:#3c6cf0; --text:#e6edf3; --ok:#2ea043; --err:#f85149; --shadow:0 20px 50px rgba(0,0,0,.35); --grad:linear-gradient(135deg, #6ea8ff 0%, #7c5cff 50%, #ff5f9e 100%); }
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background:
+        radial-gradient(1200px 800px at 10% -10%, rgba(110,168,255,.10), transparent),
+        radial-gradient(900px 700px at 110% 10%, rgba(255,95,158,.10), transparent),
+        var(--bg);
+        color: var(--text); line-height: 1.55; font-size: 16px; }
+      .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+      .header { display: grid; gap: 8px; padding: 12px 0 8px; }
+      .header h1 { margin: 0; font-size: 24px; }
+      .sub { color: var(--muted); }
+      .steps { display: flex; gap: 8px; flex-wrap: wrap; }
+      .step-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); }
+      .card { background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); backdrop-filter: blur(10px); }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      .actions { position: sticky; top: 0; background: rgba(11,17,22,.6); backdrop-filter: blur(10px); padding: 8px 0; z-index: 3; border-bottom: 1px solid rgba(255,255,255,0.08); }
+      .progress { height: 3px; background: rgba(255,255,255,0.08); position: relative; overflow: hidden; border-radius: 6px; }
+      .progress > span { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: var(--grad); transition: width .25s ease; }
+      button { background: var(--grad); color: white; border: 0; padding: 12px 16px; border-radius: 12px; cursor: pointer; font-weight: 800; transition: transform .08s ease, filter .2s ease; display: inline-flex; align-items: center; gap: 8px; min-height: 42px; box-shadow: 0 10px 22px rgba(127, 111, 255, .25); }
+      button:hover { filter: brightness(1.05); }
+      button:active { transform: translateY(1px); }
+      button.ghost { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text); box-shadow: none; }
+      button.danger { background: linear-gradient(135deg, #ff7a7a, #c71f1f); box-shadow: 0 10px 22px rgba(255, 122, 122, .25); }
+      button.danger:hover { filter: brightness(1.06); }
+      button.secondary { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text); box-shadow: none; }
+      button:disabled { opacity: .6; cursor: not-allowed; }
+      input[type="file"] { padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); }
+      h1 { font-size: 22px; margin: 0 0 16px; }
+      h2 { font-size: 18px; margin: 16px 0 8px; }
+      .stats { display: flex; gap: 12px; flex-wrap: wrap; }
+      .stat { padding: 8px 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,0.02); }
+      .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+      .item { border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px; background: rgba(255,255,255,0.04); transition: transform .12s ease, box-shadow .2s ease; }
+      .item:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(0,0,0,.25); }
+      .muted { color: var(--muted); }
+      .table-wrap { overflow: auto; border-radius: 10px; border: 1px solid var(--border); }
+      table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 12px; background: rgba(255,255,255,0.01); }
+      th, td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
+      .section-title { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; }
+      .section-title::after { content: ""; height: 1px; flex: 1; background: rgba(255,255,255,0.12); }
+      .spacer { flex: 1; }
+      .chip { font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); backdrop-filter: blur(4px); }
+      .chip.ok { background: linear-gradient(135deg, rgba(46,160,67,.2), rgba(46,160,67,.06)); color: #9ff4b8; }
+      .chip.err { background: linear-gradient(135deg, rgba(248,81,73,.25), rgba(248,81,73,.08)); color: #ffb3ae; }
+      .drop { border: 2px dashed rgba(255,255,255,0.18); border-radius: 18px; padding: 28px; display: grid; place-items: center; text-align: center; background: rgba(255,255,255,0.04); transition: border-color .2s ease, background .2s ease; }
+      .drop.drag { border-color: #7c5cff; background: rgba(124,92,255,0.10); }
+      .grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+      @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+      .preview-col { min-width: 0; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+      .spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: white; border-radius: 50%; display: inline-block; animation: spin 1s linear infinite; vertical-align: middle; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .empty { display: grid; place-items: center; padding: 24px; border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); }
+      .empty .icon { font-size: 36px; margin-bottom: 8px; opacity: .8; }
+      .btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .skeleton { position: relative; overflow: hidden; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; height: 96px; }
+      .skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.14), rgba(255,255,255,0)); transform: translateX(-100%); animation: shimmer 1.2s infinite; }
+      @keyframes shimmer { 100% { transform: translateX(100%); } }
+      .skip { position: absolute; left: -9999px; top: -9999px; background: #fff; color: #000; padding: 8px 12px; border-radius: 8px; z-index: 1000; }
+      .skip:focus { left: 12px; top: 12px; }
+      :focus-visible { outline: 3px solid #9cc4ff; outline-offset: 2px; border-radius: 6px; }
+      .footer { color: var(--muted); font-size: 12px; text-align: center; margin: 18px 0; }
+      .tabs { display: flex; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.12); margin-top: 8px; flex-wrap: wrap; }
+      .tab { padding: 10px 12px; border-radius: 10px 10px 0 0; cursor: pointer; background: transparent; border: 1px solid transparent; color: var(--text); font-weight: 700; }
+      .tab[aria-current="page"] { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); border-bottom-color: transparent; }
+      .tab .badge { margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.16); font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <a href="#main" class="skip">Skip to content</a>
+    <div id="root"></div>
+    <script type="module" src="/src/web/main.jsx"></script>
+  </body>
+  </html>
+
+
