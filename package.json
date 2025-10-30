@@ -7,6 +7,7 @@
     "start:dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "web:dev": "vite --config vite.config.js",
+    "dev": "vite --config vite.config.js",
     "web:build": "vite build --config vite.config.js",
     "web:preview": "vite preview --config vite.config.js"
   },
